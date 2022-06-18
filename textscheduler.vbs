@@ -1,0 +1,1 @@
+CreateObject("Wscript.Shell").Run "python D:\github\text-scheduler-tk\launcher.py", 0
