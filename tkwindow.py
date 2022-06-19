@@ -205,10 +205,12 @@ class ReminderWindow:
                 'text': message
             }
 
-            req = requests.post(POST_URL, params=post_params)
+            resp = requests.post(POST_URL, params=post_params)
 
-            print(message + '\n')
-            print(req) # Print the status code.
+            if resp.status_code == 202:
+                messagebox.showinfo('Sent status', 'Message sent')
+            else:
+                messagebox.showerror('Sent status', f"{resp.status_code} - {resp.reason}")
 
 
     def init_components(self):
