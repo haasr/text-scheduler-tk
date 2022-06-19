@@ -1,8 +1,9 @@
 from tkinter import *
 from tkinter import messagebox
-from turtle import width
-import requests
+from tkinter import ttk
+from ttkthemes import themed_tk
 from datetime import datetime as dt
+import requests
 import re
 
 POST_URL = 'https://api.groupme.com/v3/bots/post' # URL for POST requests
@@ -34,7 +35,132 @@ def reset_reminder_data():
     }
 
 
-class ReminderWindow:
+class ReminderWindow(themed_tk.ThemedTk):
+    def __init__(self, bot_id, theme, phone_numbers, default_number_key):
+        super().__init__(theme=theme, themebg=True)
+
+        s = ttk.Style()
+        s.configure('.', font=('Arial', 13))
+
+        self.BOT_ID = bot_id
+        self.phone_numbers_opts = phone_numbers.keys()
+        self.phone_numbers = phone_numbers
+        self.default_number_key = default_number_key
+
+        self.title('Ryan Bot: Schedule a text reminder')
+        self.title_large = 'Ryan Bot: Text Reminders'
+        self.minsize(512, 420)
+
+        self.init_components()
+        self.init_labels()
+        self.add_to_window()
+        mainloop()
+
+
+    def init_components(self):
+        self.title_field = ttk.Entry(self, width=41)
+        self.phone_number_field = StringVar(self)
+        self.phone_number_field.set(self.default_number_key)
+
+        self.phone_numbers_optmenu = ttk.OptionMenu(
+            self,
+            self.phone_number_field,
+            self.default_number_key,
+            *self.phone_numbers_opts,
+        )
+
+        self.description_field = Text(
+            self,
+            width=32,
+            height=3
+        )
+        self.start_date_field = ttk.Entry(self, width=41)
+        self.reminder_time_field = ttk.Entry(self, width=41)
+        self.notification_field = ttk.Entry(self, width=41)
+
+        self.clear_button = ttk.Button(
+            self,
+            text='Clear',
+            command=self.clear_reminder_data,
+        )
+
+        self.send_button = ttk.Button(
+            self,
+            text='Send',
+            command=self.send_reminder_data,
+        )
+
+        self.exit_button = ttk.Button(
+            self,
+            text='Exit',
+            command=self.destroy,
+        )
+
+
+    def init_labels(self):
+        bgcolor = self.config('background')[4] # Current background color
+
+        self.window_title_label = Label(
+            self,
+            text=self.title_large,
+            fg='#4286F6',
+            bg=bgcolor,
+            font=('Arial', 20),
+            wraplength=350,
+        )
+
+        self.title_label = ttk.Label(
+            text='Title:'
+        )
+
+        self.phone_number_label = ttk.Label(
+            text='Contact:',
+        )
+
+        self.description_label = ttk.Label(
+            text='Description:',
+        )
+
+        self.start_date_label = ttk.Label(
+            text='Start date (mm/dd):',
+        )
+
+        self.reminder_time_label = ttk.Label(
+            text='Time:',
+        )
+
+        self.notification_label = ttk.Label(
+            text='Notify at:',
+        )
+
+
+    def add_to_window(self):
+       self.window_title_label.place(x=32, y=16)
+
+       self.clear_button.place(x=380, y=22)
+
+       self.title_label.place(x=32, y=92)
+       self.title_field.place(x=180, y=92)
+
+       self.phone_number_label.place(x=32, y=128)
+       self.phone_numbers_optmenu.place(x=180, y=128)
+
+       self.description_label.place(x=32, y=168)
+       self.description_field.place(x=180, y=168)
+
+       self.start_date_label.place(x=32, y=230)
+       self.start_date_field.place(x=180, y=230)
+
+       self.reminder_time_label.place(x=32, y=258)
+       self.reminder_time_field.place(x=180, y=258)
+
+       self.notification_label.place(x=32, y=286)
+       self.notification_field.place(x=180, y=286)
+
+       self.send_button.place(x=180, y=344)
+       self.exit_button.place(x=310, y=344)
+
+
     # Ensures task date is not already in past
     def validate_date(self, date):
         dt_date = dt.strptime(date, '%m/%d/%y')
@@ -160,8 +286,6 @@ class ReminderWindow:
     def send_reminder_data(self):
         global reminder_data
 
-        print("PHONE NUMBER IS " + self.phone_number_field.get())
-
         stop = False
         # TODO: Write some kind of switch-case-like module in the future.
         # Why doesn't Python just have switch cases tho...
@@ -211,135 +335,3 @@ class ReminderWindow:
                 messagebox.showinfo('Sent status', 'Message sent')
             else:
                 messagebox.showerror('Sent status', f"{resp.status_code} - {resp.reason}")
-
-
-    def init_components(self):
-        self.title_field = Entry(self.window, width=41)
-        self.phone_number_field = StringVar(self.window)
-        self.phone_number_field.set(self.default_number_key)
-
-        self.phone_numbers_optmenu = OptionMenu(
-            self.window,
-            self.phone_number_field,
-            *self.phone_numbers_opts,
-        )
-
-        self.description_field = Text(
-            self.window,
-            width=32,
-            height=3
-        )
-        self.start_date_field = Entry(self.window, width=41)
-        self.reminder_time_field = Entry(self.window, width=41)
-        self.notification_field = Entry(self.window, width=41)
-
-        self.clear_button = Button(
-            self.window,
-            text='Clear',
-            command=self.clear_reminder_data,
-            font=('Arial', 12)
-        )
-
-        self.send_button = Button(
-            self.window,
-            text='Send',
-            command=self.send_reminder_data,
-            font=('Arial', 12)
-        )
-
-        self.exit_button = Button(
-            self.window,
-            text='Exit',
-            command=self.window.destroy,
-            font=('Arial', 12)
-        )
-
-
-    def init_labels(self):
-        self.window_title_label = Label(
-            self.window,
-            text=self.title,
-            fg='#4286F6',
-            font=('Arial', 20),
-            wraplength=350,
-        )
-
-        self.title_label = Label(
-            text='Title',
-            fg='black',
-            font=('Arial', 12)
-        )
-
-        self.phone_number_label = Label(
-            text='Phone number',
-            fg='black',
-            font=('Arial', 12)
-        )
-
-        self.description_label = Label(
-            text='Description',
-            fg='black',
-            font=('Arial', 12)
-        )
-
-        self.start_date_label = Label(
-            text='Start date (mm/dd)',
-            fg='black',
-            font=('Arial', 12)
-        )
-
-        self.reminder_time_label = Label(
-            text='Time',
-            fg='black',
-            font=('Arial', 12),
-        )
-
-        self.notification_label = Label(
-            text='Notify at',
-            fg='black',
-            font=('Arial', 12)
-        )
-
-
-    def add_to_window(self):
-       self.window_title_label.place(x=32, y=16)
-
-       self.clear_button.place(x=420, y=16)
-
-       self.title_label.place(x=32, y=92)
-       self.title_field.place(x=180, y=92)
-
-       self.phone_number_label.place(x=32, y=120)
-       self.phone_numbers_optmenu.place(x=180, y=120)
-
-       self.description_label.place(x=32, y=148)
-       self.description_field.place(x=180, y=148)
-
-       self.start_date_label.place(x=32, y=210)
-       self.start_date_field.place(x=180, y=210)
-
-       self.reminder_time_label.place(x=32, y=238)
-       self.reminder_time_field.place(x=180, y=238)
-
-       self.notification_label.place(x=32, y=266)
-       self.notification_field.place(x=180, y=266)
-
-       self.send_button.place(x=180, y=324)
-       self.exit_button.place(x=310, y=324)
-
-
-    def __init__(self, bot_id, phone_numbers, default_number_key):
-        self.BOT_ID = bot_id
-        self.phone_numbers_opts = phone_numbers.keys()
-        self.phone_numbers = phone_numbers
-        self.default_number_key = default_number_key
-
-        self.window = Tk()
-        self.window.title('Ryan Bot: Schedule a text reminder')
-        self.title = 'Ryan Bot: Text Reminders'
-        self.window.minsize(512, 372)
-
-        self.init_components()
-        self.init_labels()
-        self.add_to_window()
-        mainloop()
